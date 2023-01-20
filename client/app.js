@@ -6,7 +6,11 @@ const userNameInput = document.querySelector(`#username`);
 const messageContentInput = document.querySelector(`#message-content`);
 
 let userName = ``;
+let socket = null;
 
+const joinIn = () => {
+    socket.emit('join', { author: userName })
+}
 
 const login = (e) => {
     e.preventDefault();
@@ -23,6 +27,11 @@ const login = (e) => {
     loginForm.classList.remove(`show`);
     messagesSection.classList.add(`show`);
 
+    socket = io();
+    socket.on('message', ({ author, content }) => addMessage(author, content))
+
+    joinIn()
+
 }
 
 const addMessage = (author, content) => {
@@ -30,6 +39,7 @@ const addMessage = (author, content) => {
     message.classList.add('message');
     message.classList.add('message--received');
     if (author === userName) message.classList.add('message--self');
+    if (author === `Chat bot`) message.classList.add('message--chat-bot');
     message.innerHTML = `
       <h3 class="message__author">${userName === author ? 'You' : author}</h3>
       <div class="message__content">
@@ -51,13 +61,11 @@ const sendMessage = (e) => {
     }
 
     addMessage(userName, messageContentInput.value);
+    socket.emit('message', { author: userName, content: messageContentInput.value })
     messageContentInput.value = ``;
 
 }
 
-
 loginForm.addEventListener(`submit`, login);
 addMessageForm.addEventListener(`submit`, sendMessage)
 
-console.log(`witam`)
-console.log(loginForm)
